@@ -32,23 +32,40 @@ export class UserController {
   create(@Body() createUserDto: CreateUserDto) {
     const user = this.userService.create(createUserDto);
 
-    const { password, ...result } = user;
-    return result;
+    return {
+      id: user.id,
+      login: user.login,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   findAll() {
     const users = this.userService.findAll();
-    return users.map(({ password, ...user }) => user);
+    return users.map((user) => ({
+      id: user.id,
+      login: user.login,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }));
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get single user by id' })
   findOne(@Param('id') id: string) {
     const user = this.userService.findOne(id);
-    const { password, ...result } = user;
-    return result;
+
+    return {
+      id: user.id,
+      login: user.login,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   @Put(':id')
@@ -58,8 +75,14 @@ export class UserController {
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     const user = this.userService.updatePassword(id, updatePasswordDto);
-    const { password, ...result } = user;
-    return result;
+
+    return {
+      id: user.id,
+      login: user.login,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   @Delete(':id')

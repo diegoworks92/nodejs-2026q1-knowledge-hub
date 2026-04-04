@@ -3,6 +3,8 @@ import {
   NotFoundException,
   BadRequestException,
   UnprocessableEntityException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
 import { Comment } from './entities/comment.entity';
@@ -13,7 +15,10 @@ import { ArticleService } from '../article/article.service';
 export class CommentService {
   private comments: Comment[] = [];
 
-  constructor(private readonly articleService: ArticleService) {}
+  constructor(
+    @Inject(forwardRef(() => ArticleService))
+    private readonly articleService: ArticleService,
+  ) {}
 
   create(createCommentDto: CreateCommentDto): Comment {
     try {

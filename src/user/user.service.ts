@@ -3,15 +3,26 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-user.dto';
+import { ArticleService } from '../article/article.service';
+import { CommentService } from '../comment/comment.service';
 
 @Injectable()
 export class UserService {
   private users: User[] = [];
+
+  constructor(
+    @Inject(forwardRef(() => ArticleService))
+    private readonly articleService: ArticleService,
+    @Inject(forwardRef(() => CommentService))
+    private readonly commentService: CommentService,
+  ) {}
 
   findAll(): User[] {
     return this.users;
@@ -58,6 +69,8 @@ export class UserService {
     if (userIndex === -1) {
       this.findOne(id);
     }
+    this.articleService.nullifyAuthor(id);
+    this.commentService.removeByUser(id);
     this.users.splice(userIndex, 1);
   }
 }

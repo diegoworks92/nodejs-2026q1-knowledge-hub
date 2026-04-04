@@ -2,18 +2,25 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
 import { Article } from './entities/article.entity';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { CategoryService } from '../category/category.service';
+import { CommentService } from '../comment/comment.service';
 
 @Injectable()
 export class ArticleService {
   private articles: Article[] = [];
 
-  constructor(private readonly categoryService: CategoryService) {}
+  constructor(
+    @Inject(forwardRef(() => CategoryService))
+    private readonly categoryService: CategoryService,
+    private readonly commentService: CommentService,
+  ) {}
 
   findAll(status?: string, categoryId?: string, tag?: string): Article[] {
     let filteredArticles = [...this.articles];
@@ -85,6 +92,7 @@ export class ArticleService {
     if (index === -1) {
       this.findOne(id);
     }
+    this.commentService.removeByArticle(id);
     this.articles.splice(index, 1);
   }
 

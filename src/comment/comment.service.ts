@@ -34,7 +34,7 @@ export class CommentService {
       id: uuidv4(),
       content: createCommentDto.content,
       articleId: createCommentDto.articleId,
-      authorId: createCommentDto.authorId,
+      authorId: createCommentDto.authorId || null,
       createdAt: Date.now(),
     };
 
@@ -49,12 +49,24 @@ export class CommentService {
     return this.comments;
   }
 
-  remove(id: string): void {
-    const index = this.comments.findIndex((c) => c.id === id);
-    if (index === -1) {
-      if (!isUuid(id)) throw new BadRequestException('Invalid commentId');
+  findOne(id: string): Comment {
+    if (!isUuid(id)) {
+      throw new BadRequestException('Invalid commentId');
+    }
+    const comment = this.comments.find((c) => c.id === id);
+    if (!comment) {
       throw new NotFoundException('Comment not found');
     }
+    return comment;
+  }
+
+  getById(id: string): Comment {
+    return this.findOne(id);
+  }
+
+  remove(id: string): void {
+    const comment = this.findOne(id);
+    const index = this.comments.findIndex((c) => c.id === comment.id);
     this.comments.splice(index, 1);
   }
 
@@ -64,5 +76,11 @@ export class CommentService {
 
   removeByUser(userId: string) {
     this.comments = this.comments.filter((c) => c.authorId !== userId);
+  }
+
+  nullifyAuthor(userId: string) {
+    this.comments.forEach((c) => {
+      if (c.authorId === userId) c.authorId = null;
+    });
   }
 }

@@ -8,5 +8,6 @@ import { CommentModule } from '../comment/comment.module';
   imports: [forwardRef(() => ArticleModule), forwardRef(() => CommentModule)],
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService],
 })
 export class UserModule {}

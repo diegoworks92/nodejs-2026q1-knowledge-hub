@@ -24,8 +24,13 @@ export class UserService {
     private readonly commentService: CommentService,
   ) {}
 
+  private sanitize(user: User): User {
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword as User;
+  }
+
   findAll(): User[] {
-    return this.users;
+    return this.users.map((user) => this.sanitize(user));
   }
 
   findOne(id: string): User {
@@ -36,7 +41,7 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return user;
+    return this.sanitize(user);
   }
 
   create(createUserDto: CreateUserDto): User {
@@ -45,29 +50,43 @@ export class UserService {
       login: createUserDto.login,
       password: createUserDto.password,
       role: createUserDto.role || 'viewer',
+      version: 1,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
     this.users.push(newUser);
-    return newUser;
+    return this.sanitize(newUser);
   }
 
   updatePassword(id: string, updatePasswordDto: UpdatePasswordDto): User {
-    const user = this.findOne(id);
+    if (!isUuid(id)) {
+      throw new BadRequestException('Invalid userId (not uuid)');
+    }
+
+    const user = this.users.find((u) => u.id === id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     if (user.password !== updatePasswordDto.oldPassword) {
       throw new ForbiddenException('Old password is wrong');
     }
 
     user.password = updatePasswordDto.newPassword;
+    user.version++;
     user.updatedAt = Date.now();
-    return user;
+
+    return this.sanitize(user);
   }
 
   remove(id: string): void {
+    if (!isUuid(id)) {
+      throw new BadRequestException('Invalid userId (not uuid)');
+    }
     const userIndex = this.users.findIndex((u) => u.id === id);
     if (userIndex === -1) {
-      this.findOne(id);
+      throw new NotFoundException('User not found');
     }
     this.articleService.nullifyAuthor(id);
     this.commentService.removeByUser(id);

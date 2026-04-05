@@ -11,6 +11,7 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { CategoryService } from '../category/category.service';
 import { CommentService } from '../comment/comment.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class ArticleService {
@@ -19,7 +20,10 @@ export class ArticleService {
   constructor(
     @Inject(forwardRef(() => CategoryService))
     private readonly categoryService: CategoryService,
+    @Inject(forwardRef(() => CommentService))
     private readonly commentService: CommentService,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
   ) {}
 
   findAll(status?: string, categoryId?: string, tag?: string): Article[] {
@@ -58,6 +62,10 @@ export class ArticleService {
       this.categoryService.findOne(createArticleDto.categoryId);
     }
 
+    if (createArticleDto.authorId) {
+      this.userService.findOne(createArticleDto.authorId);
+    }
+
     const newArticle: Article = {
       id: uuidv4(),
       title: createArticleDto.title,
@@ -81,6 +89,10 @@ export class ArticleService {
       this.categoryService.findOne(updateArticleDto.categoryId);
     }
 
+    if (updateArticleDto.authorId) {
+      this.userService.findOne(updateArticleDto.authorId);
+    }
+
     Object.assign(article, updateArticleDto);
     article.updatedAt = Date.now();
 
@@ -88,10 +100,9 @@ export class ArticleService {
   }
 
   remove(id: string): void {
-    const index = this.articles.findIndex((a) => a.id === id);
-    if (index === -1) {
-      this.findOne(id);
-    }
+    const article = this.findOne(id);
+    const index = this.articles.findIndex((a) => a.id === article.id);
+
     this.commentService.removeByArticle(id);
     this.articles.splice(index, 1);
   }

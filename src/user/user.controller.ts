@@ -30,42 +30,19 @@ export class UserController {
     description: 'Bad request (missing required fields).',
   })
   create(@Body() createUserDto: CreateUserDto) {
-    const user = this.userService.create(createUserDto);
-
-    return {
-      id: user.id,
-      login: user.login,
-      role: user.role,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return this.userService.create(createUserDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   findAll() {
-    const users = this.userService.findAll();
-    return users.map((user) => ({
-      id: user.id,
-      login: user.login,
-      role: user.role,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    }));
+    return this.userService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get single user by id' })
   findOne(@Param('id') id: string) {
-    const user = this.userService.findOne(id);
-
-    return {
-      id: user.id,
-      login: user.login,
-      role: user.role,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return this.userService.findOne(id);
   }
 
   @Put(':id')
@@ -74,15 +51,7 @@ export class UserController {
     @Param('id') id: string,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
-    const user = this.userService.updatePassword(id, updatePasswordDto);
-
-    return {
-      id: user.id,
-      login: user.login,
-      role: user.role,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return this.userService.updatePassword(id, updatePasswordDto);
   }
 
   @Delete(':id')

@@ -31,6 +31,12 @@ export class CommentController {
     return this.commentService.findAll(articleId);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get single comment by id' })
+  findOne(@Param('id') id: string) {
+    return this.commentService.findOne(id);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete comment' })

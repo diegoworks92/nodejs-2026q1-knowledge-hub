@@ -1,0 +1,11 @@
+import { forwardRef, Module } from '@nestjs/common';
+import { CategoryService } from './category.service';
+import { CategoryController } from './category.controller';
+import { ArticleModule } from '../article/article.module';
+@Module({
+  imports: [forwardRef(() => ArticleModule)],
+  controllers: [CategoryController],
+  providers: [CategoryService],
+  exports: [CategoryService],
+})
+export class CategoryModule {}

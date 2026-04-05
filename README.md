@@ -1,72 +1,104 @@
-# Home Library Service
+# Knowledge Hub API
+
+This is a REST API for a Knowledge Hub platform built with Nest.js. The application allows users to create, edit, and organize articles by categories and tags, featuring in-memory data management and cascading logic for deletions.
+
+---
 
 ## Prerequisites
 
-- Git - [Download & Install Git](https://git-scm.com/downloads).
-- Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
+- Git - Download & Install Git.
+- Node.js - Download & Install Node.js (Version 24.x.x recommended).
+- npm package manager.
 
-## Downloading
+---
 
+## Getting Started
+
+### Clone the repository
+
+```bash
+git clone <repository-url>
 ```
-git clone {repository URL}
-```
 
-## Installing NPM modules
+### Install dependencies
 
-```
+```bash
 npm install
 ```
 
-## Running application
+### Run the application
 
-```
+The service listens on PORT 4000 by default (configured via `.env`).
+
+```bash
 npm start
 ```
 
-After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+After starting the app, you can access the OpenAPI (Swagger) documentation to explore and test the endpoints:
+
+http://localhost:4000/doc/
+
+---
+
+## Features
+
+- **Users (/user):** Manage accounts with roles (admin, editor, viewer). Passwords are encrypted and excluded from all server responses.
+
+- **Articles (/article):** Create and filter articles by status, category, or tags.
+
+- **Categories (/category):** Organize articles into logical groups.
+
+- **Comments (/comment):** Add feedback to specific articles.
+
+### Cascading Logic
+
+- Deleting a User nullifies their Articles' `authorId` and removes their Comments.
+- Deleting a Category nullifies related Articles' `categoryId`.
+- Deleting an Article removes all associated Comments.
+
+---
 
 ## Testing
 
-After application running open new terminal and enter:
+### Core Functionality Tests
 
-To run all tests without authorization
+To run the automated test suite for the current task (CRUD and Business Logic):
 
-```
-npm run test
-```
-
-To run only one of all test suites
-
-```
-npm run test -- <path to suite>
+```bash
+npx jest test/users.e2e.spec.ts test/articles.e2e.spec.ts test/categories.e2e.spec.ts test/comments.e2e.spec.ts
 ```
 
-To run all test with authorization
+> **Note:** These 4 suites contain 58 tests that must pass for this stage.
 
-```
-npm run test:auth
-```
+---
 
-To run only specific test suite with authorization
+### Future Development Tests
 
-```
-npm run test:auth -- <path to suite>
-```
+The `test/` directory contains additional suites (`auth`, `rbac`, `refresh`) prepared for future development phases. These are expected to fail until the authentication and authorization modules are fully implemented in the next tasks.
 
-### Auto-fix and format
+---
 
-```
+## Linting and Formatting
+
+To maintain code quality and follow the assignment rules:
+
+- Run Linter:
+
+```bash
 npm run lint
 ```
 
-```
+- Format Code:
+
+```bash
 npm run format
 ```
 
-### Debugging in VSCode
+> **IMPORTANT:**  
+> The `test/` directory is excluded from linting and formatting (via `.eslintignore` and `.prettierignore`) to prevent any accidental modifications to the original test files, avoiding penalties.
 
-Press <kbd>F5</kbd> to debug.
+---
 
-For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+## Debugging in VSCode
+
+Press `<kbd>F5</kbd>` to start debugging using the provided launch configurations in `.vscode/launch.json`.

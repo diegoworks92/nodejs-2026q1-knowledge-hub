@@ -102,3 +102,38 @@ npm run format
 ## Debugging in VSCode
 
 Press `<kbd>F5</kbd>` to start debugging using the provided launch configurations in `.vscode/launch.json`.
+
+---
+
+## Docker Infrastructure
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- .env file configured based on .env.example
+
+### Getting Started
+
+To build and run the application and database:
+
+docker-compose up --build
+
+The API will be available at:
+http://localhost:4000
+
+Swagger documentation is accessible at:
+http://localhost:4000/doc
+
+### Database Administration
+
+To run Adminer for database management, use the debug profile:
+
+docker-compose --profile debug up
+
+Adminer will be available at:
+http://localhost:8080
+
+### Docker Hub Image
+
+Public image available at:
+https://hub.docker.com/r/diegoworks/nodejs-2026q1-knowledge-hub-app

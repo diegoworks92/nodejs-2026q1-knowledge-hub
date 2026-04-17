@@ -3,67 +3,58 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
-import { v4 as uuidv4, validate as isUuid } from 'uuid';
-import { User } from './entities/user.entity';
+import { validate as isUuid } from 'uuid';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-user.dto';
-import { ArticleService } from '../article/article.service';
-import { CommentService } from '../comment/comment.service';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class UserService {
-  private users: User[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor(
-    @Inject(forwardRef(() => ArticleService))
-    private readonly articleService: ArticleService,
-    @Inject(forwardRef(() => CommentService))
-    private readonly commentService: CommentService,
-  ) {}
-
-  private sanitize(user: User): User {
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword as User;
+  async findAll() {
+    const users = await this.prisma.user.findMany();
+    return users.map(
+      ({ password, ...userWithoutPassword }) => userWithoutPassword,
+    );
   }
 
-  findAll(): User[] {
-    return this.users.map((user) => this.sanitize(user));
-  }
-
-  findOne(id: string): User {
+  async findOne(id: string) {
     if (!isUuid(id)) {
       throw new BadRequestException('Invalid userId (not uuid)');
     }
-    const user = this.users.find((u) => u.id === id);
+
+    const user = await this.prisma.user.findUnique({ where: { id } });
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return this.sanitize(user);
+
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
-  create(createUserDto: CreateUserDto): User {
-    const newUser: User = {
-      id: uuidv4(),
-      login: createUserDto.login,
-      password: createUserDto.password,
-      role: createUserDto.role || 'viewer',
-      version: 1,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-    this.users.push(newUser);
-    return this.sanitize(newUser);
+  async create(createUserDto: CreateUserDto) {
+    const user = await this.prisma.user.create({
+      data: {
+        login: createUserDto.login,
+        password: createUserDto.password,
+        role: (createUserDto.role as unknown as Role) || Role.VIEWER,
+      },
+    });
+
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
-  updatePassword(id: string, updatePasswordDto: UpdatePasswordDto): User {
+  async updatePassword(id: string, updatePasswordDto: UpdatePasswordDto) {
     if (!isUuid(id)) {
       throw new BadRequestException('Invalid userId (not uuid)');
     }
 
-    const user = this.users.find((u) => u.id === id);
+    const user = await this.prisma.user.findUnique({ where: { id } });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -73,23 +64,38 @@ export class UserService {
       throw new ForbiddenException('Old password is wrong');
     }
 
-    user.password = updatePasswordDto.newPassword;
-    user.version++;
-    user.updatedAt = Date.now();
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        password: updatePasswordDto.newPassword,
+      },
+    });
 
-    return this.sanitize(user);
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
   }
 
-  remove(id: string): void {
+  async remove(id: string) {
     if (!isUuid(id)) {
       throw new BadRequestException('Invalid userId (not uuid)');
     }
-    const userIndex = this.users.findIndex((u) => u.id === id);
-    if (userIndex === -1) {
+
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
       throw new NotFoundException('User not found');
     }
-    this.articleService.nullifyAuthor(id);
-    this.commentService.removeByUser(id);
-    this.users.splice(userIndex, 1);
+
+    await this.prisma.$transaction([
+      this.prisma.article.updateMany({
+        where: { authorId: id },
+        data: { authorId: null },
+      }),
+      this.prisma.comment.deleteMany({
+        where: { authorId: id },
+      }),
+      this.prisma.user.delete({
+        where: { id },
+      }),
+    ]);
   }
 }

@@ -2,65 +2,72 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
-import { v4 as uuidv4, validate as isUuid } from 'uuid';
-import { Category } from './entities/category.entity';
+import { validate as isUuid } from 'uuid';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { ArticleService } from '../article/article.service';
 
 @Injectable()
 export class CategoryService {
-  private categories: Category[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor(
-    @Inject(forwardRef(() => ArticleService))
-    private readonly articleService: ArticleService,
-  ) {}
-
-  findAll(): Category[] {
-    return this.categories;
+  async findAll() {
+    return await this.prisma.category.findMany();
   }
 
-  findOne(id: string): Category {
+  async findOne(id: string) {
     if (!isUuid(id)) {
       throw new BadRequestException('Invalid categoryId (not uuid)');
     }
-    const category = this.categories.find((c) => c.id === id);
+
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
+
     if (!category) {
       throw new NotFoundException('Category not found');
     }
-    return category;
-  }
-
-  create(createCategoryDto: CreateCategoryDto): Category {
-    const newCategory: Category = {
-      id: uuidv4(),
-      name: createCategoryDto.name,
-      description: createCategoryDto.description,
-    };
-    this.categories.push(newCategory);
-    return newCategory;
-  }
-
-  update(id: string, updateCategoryDto: UpdateCategoryDto): Category {
-    const category = this.findOne(id);
-
-    if (updateCategoryDto.name) category.name = updateCategoryDto.name;
-    if (updateCategoryDto.description)
-      category.description = updateCategoryDto.description;
 
     return category;
   }
 
-  remove(id: string): void {
-    const index = this.categories.findIndex((c) => c.id === id);
-    if (index === -1) {
-      this.findOne(id);
+  async create(createCategoryDto: CreateCategoryDto) {
+    return await this.prisma.category.create({
+      data: {
+        name: createCategoryDto.name,
+        description: createCategoryDto.description,
+      },
+    });
+  }
+
+  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
+    await this.findOne(id);
+
+    return await this.prisma.category.update({
+      where: { id },
+      data: {
+        name: updateCategoryDto.name,
+        description: updateCategoryDto.description,
+      },
+    });
+  }
+
+  async remove(id: string) {
+    if (!isUuid(id)) {
+      throw new BadRequestException('Invalid categoryId (not uuid)');
     }
-    this.articleService.nullifyCategory(id);
-    this.categories.splice(index, 1);
+
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    await this.prisma.category.delete({
+      where: { id },
+    });
   }
 }

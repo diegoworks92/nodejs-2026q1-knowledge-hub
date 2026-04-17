@@ -29,35 +29,35 @@ export class UserController {
     status: 400,
     description: 'Bad request (missing required fields).',
   })
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    return await this.userService.create(createUserDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all users' })
-  findAll() {
-    return this.userService.findAll();
+  async findAll() {
+    return await this.userService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get single user by id' })
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.userService.findOne(id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update user password' })
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
-    return this.userService.updatePassword(id, updatePasswordDto);
+    return await this.userService.updatePassword(id, updatePasswordDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete user' })
-  remove(@Param('id') id: string) {
-    return this.userService.remove(id);
+  async remove(@Param('id') id: string) {
+    return await this.userService.remove(id);
   }
 }

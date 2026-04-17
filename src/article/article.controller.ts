@@ -22,8 +22,8 @@ export class ArticleController {
 
   @Post()
   @ApiOperation({ summary: 'Create new article' })
-  create(@Body() createArticleDto: CreateArticleDto) {
-    return this.articleService.create(createArticleDto);
+  async create(@Body() createArticleDto: CreateArticleDto) {
+    return await this.articleService.create(createArticleDto);
   }
 
   @Get()
@@ -35,30 +35,33 @@ export class ArticleController {
   })
   @ApiQuery({ name: 'categoryId', required: false })
   @ApiQuery({ name: 'tag', required: false })
-  findAll(
+  async findAll(
     @Query('status') status?: string,
     @Query('categoryId') categoryId?: string,
     @Query('tag') tag?: string,
   ) {
-    return this.articleService.findAll(status, categoryId, tag);
+    return await this.articleService.findAll(status, categoryId, tag);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get single article by id' })
-  findOne(@Param('id') id: string) {
-    return this.articleService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.articleService.findOne(id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update article info' })
-  update(@Param('id') id: string, @Body() updateArticleDto: UpdateArticleDto) {
-    return this.articleService.update(id, updateArticleDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateArticleDto: UpdateArticleDto,
+  ) {
+    return await this.articleService.update(id, updateArticleDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete article' })
-  remove(@Param('id') id: string) {
-    return this.articleService.remove(id);
+  async remove(@Param('id') id: string) {
+    return await this.articleService.remove(id);
   }
 }

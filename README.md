@@ -1,6 +1,6 @@
 # Knowledge Hub API
 
-This is a REST API for a Knowledge Hub platform built with Nest.js. The application allows users to create, edit, and organize articles by categories and tags, featuring in-memory data management and cascading logic for deletions.
+This is a REST API for a Knowledge Hub platform built with Nest.js. The application allows users to create, edit, and organize articles by categories and tags, featuring persistent data management with PostgreSQL/Prisma and database-level cascading logic.
 
 ---
 
@@ -26,6 +26,15 @@ git clone <repository-url>
 npm install
 ```
 
+### Generate Prisma Client and apply migrations
+
+npx prisma generate
+npx prisma migrate dev
+
+### Run the seed script to populate the database
+
+npx prisma db seed
+
 ### Run the application
 
 The service listens on PORT 4000 by default (configured via `.env`).
@@ -50,7 +59,17 @@ http://localhost:4000/doc/
 
 - **Comments (/comment):** Add feedback to specific articles.
 
-### Cascading Logic
+### Database Performance:
+
+Database indexes added to Article.status, Article.categoryId, and Tag.name for optimized queries.
+
+Connection pooling enabled via connection_limit in the DATABASE_URL.
+
+Efficient data fetching using Prisma include to avoid the N+1 problem.
+
+### Tag Management: Articles use the connectOrCreate pattern to manage tags automatically during creation or updates.
+
+### Cascading Logic (Database Level via Prisma)
 
 - Deleting a User nullifies their Articles' `authorId` and removes their Comments.
 - Deleting a Category nullifies related Articles' `categoryId`.
@@ -59,6 +78,8 @@ http://localhost:4000/doc/
 ---
 
 ## Testing
+
+Note: Ensure the database is running and all migrations have been applied (npx prisma migrate dev) before running tests, as they now interact with a real PostgreSQL instance.
 
 ### Core Functionality Tests
 
@@ -106,6 +127,24 @@ Press `<kbd>F5</kbd>` to start debugging using the provided launch configuration
 ---
 
 ## Docker Infrastructure
+
+### Security Scanning Results
+
+A security scan was performed on the final image to comply with Assignment 06a requirements.
+
+Tool: Docker Scout
+
+### Summary:
+
+Critical: 0
+
+High: 0
+
+Medium: 0
+
+Low: 0
+
+The image uses node:24-alpine as a base to minimize vulnerabilities and keep the total size under 500MB.
 
 ### Prerequisites
 

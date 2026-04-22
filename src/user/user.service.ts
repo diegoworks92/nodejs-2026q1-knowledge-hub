@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-user.dto';
 import { Role } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService {
@@ -17,7 +18,8 @@ export class UserService {
   async findAll() {
     const users = await this.prisma.user.findMany();
     return users.map(
-      ({ password, ...userWithoutPassword }) => userWithoutPassword,
+      ({ password, hashedRefreshToken, ...userWithoutPassword }) =>
+        userWithoutPassword,
     );
   }
 
@@ -32,20 +34,23 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    const { password, ...userWithoutPassword } = user;
+    const { password, hashedRefreshToken, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
   async create(createUserDto: CreateUserDto) {
+    const salt = parseInt(process.env.CRYPT_SALT || '10', 10);
+    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+
     const user = await this.prisma.user.create({
       data: {
         login: createUserDto.login,
-        password: createUserDto.password,
+        password: hashedPassword,
         role: (createUserDto.role as unknown as Role) || Role.VIEWER,
       },
     });
 
-    const { password, ...userWithoutPassword } = user;
+    const { password, hashedRefreshToken, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
@@ -60,18 +65,30 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    if (user.password !== updatePasswordDto.oldPassword) {
+    const isMatch = await bcrypt.compare(
+      updatePasswordDto.oldPassword,
+      user.password,
+    );
+
+    if (!isMatch) {
       throw new ForbiddenException('Old password is wrong');
     }
+
+    const salt = parseInt(process.env.CRYPT_SALT || '10', 10);
+    const hashedNewPassword = await bcrypt.hash(
+      updatePasswordDto.newPassword,
+      salt,
+    );
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: {
-        password: updatePasswordDto.newPassword,
+        password: hashedNewPassword,
       },
     });
 
-    const { password, ...userWithoutPassword } = updatedUser;
+    const { password, hashedRefreshToken, ...userWithoutPassword } =
+      updatedUser;
     return userWithoutPassword;
   }
 

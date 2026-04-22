@@ -20,33 +20,34 @@ enum ArticleStatus {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  login     String    @unique
-  password  String
-  role      Role      @default(VIEWER)
-  version   Int       @default(1)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  articles  Article[]
-  comments  Comment[]
+  id                 String    @id @default(uuid())
+  login              String    @unique
+  password           String
+  role               Role      @default(VIEWER)
+  version            Int       @default(1)
+  hashedRefreshToken String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  articles           Article[]
+  comments           Comment[]
 }
 
 model Article {
-  id         String        @id @default(uuid())
-  title      String
-  content    String
-  status     ArticleStatus @default(DRAFT)
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  
-  author     User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  authorId   String?
-  
-  category   Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  id        String        @id @default(uuid())
+  title     String
+  content   String
+  status    ArticleStatus @default(DRAFT)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  author   User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId String?
+
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   categoryId String?
-  
-  comments   Comment[]
-  tags       Tag[]         @relation("ArticleTags")
+
+  comments Comment[]
+  tags     Tag[]     @relation("ArticleTags")
 
   @@index([status])
   @@index([categoryId])
@@ -63,12 +64,12 @@ model Comment {
   id        String   @id @default(uuid())
   content   String
   createdAt DateTime @default(now())
-  
-  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
   articleId String
-  
-  author    User?    @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  authorId  String?
+
+  author   User?   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String?
 }
 
 model Tag {

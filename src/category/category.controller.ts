@@ -12,14 +12,22 @@ import {
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { Roles } from '../auth/decorators';
 
 @ApiTags('category')
+@ApiBearerAuth()
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
+  @Roles('admin', 'editor')
   @ApiOperation({ summary: 'Create new category' })
   @ApiResponse({ status: 201, description: 'Created' })
   @ApiResponse({ status: 400, description: 'Bad request' })
@@ -40,6 +48,7 @@ export class CategoryController {
   }
 
   @Put(':id')
+  @Roles('admin', 'editor')
   @ApiOperation({ summary: 'Update category info' })
   async update(
     @Param('id') id: string,
@@ -49,6 +58,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
+  @Roles('admin')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete category' })
   async remove(@Param('id') id: string) {

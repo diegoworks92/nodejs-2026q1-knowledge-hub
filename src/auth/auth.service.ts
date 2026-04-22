@@ -29,8 +29,7 @@ export class AuthService {
       throw new BadRequestException('Login is already taken');
     }
 
-    const salt = parseInt(process.env.CRYPT_SALT || '10', 10);
-    const hashedPassword = await bcrypt.hash(dto.password, salt);
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     const user = await this.prisma.user.create({
       data: {
@@ -105,8 +104,7 @@ export class AuthService {
   }
 
   private async updateRefreshToken(userId: string, refreshToken: string) {
-    const salt = parseInt(process.env.CRYPT_SALT || '10', 10);
-    const hash = await bcrypt.hash(refreshToken, salt);
+    const hash = await bcrypt.hash(refreshToken, 10);
     await this.prisma.user.update({
       where: { id: userId },
       data: { hashedRefreshToken: hash },

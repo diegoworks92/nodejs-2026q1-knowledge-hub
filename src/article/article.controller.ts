@@ -13,14 +13,22 @@ import {
 import { ArticleService } from './article.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
-import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { Roles } from '../auth/decorators';
 
 @ApiTags('article')
+@ApiBearerAuth()
 @Controller('article')
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
   @Post()
+  @Roles('admin', 'editor')
   @ApiOperation({ summary: 'Create new article' })
   async create(@Body() createArticleDto: CreateArticleDto) {
     return await this.articleService.create(createArticleDto);
@@ -50,6 +58,7 @@ export class ArticleController {
   }
 
   @Put(':id')
+  @Roles('admin', 'editor')
   @ApiOperation({ summary: 'Update article info' })
   async update(
     @Param('id') id: string,
@@ -59,6 +68,7 @@ export class ArticleController {
   }
 
   @Delete(':id')
+  @Roles('admin')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete article' })
   async remove(@Param('id') id: string) {

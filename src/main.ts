@@ -21,6 +21,7 @@ async function bootstrap() {
     .setTitle('Knowledge Hub API')
     .setDescription('The Knowledge Hub API for RS School project')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('doc', app, document);

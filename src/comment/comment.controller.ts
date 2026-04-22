@@ -11,14 +11,22 @@ import {
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { Roles } from '../auth/decorators';
 
 @ApiTags('comment')
+@ApiBearerAuth()
 @Controller('comment')
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @Post()
+  @Roles('admin', 'editor')
   @ApiOperation({ summary: 'Create new comment' })
   async create(@Body() createCommentDto: CreateCommentDto) {
     return await this.commentService.create(createCommentDto);
@@ -38,6 +46,7 @@ export class CommentController {
   }
 
   @Delete(':id')
+  @Roles('admin')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete comment' })
   async remove(@Param('id') id: string) {

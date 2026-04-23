@@ -12,7 +12,7 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
-    private jwt: JwtService,
+    private jwtService: JwtService,
     private reflector: Reflector,
   ) {}
 
@@ -21,15 +21,17 @@ export class JwtAuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+
     if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
+
     if (!token) throw new UnauthorizedException();
 
     try {
-      const payload = await this.jwt.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: process.env.JWT_SECRET || 'secret',
       });
       request['user'] = payload;
     } catch {

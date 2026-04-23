@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { validate as isUuid } from 'uuid';
 import { PrismaService } from '../prisma/prisma.service';
@@ -63,8 +64,14 @@ export class ArticleService {
     });
   }
 
-  async update(id: string, updateArticleDto: UpdateArticleDto) {
-    await this.findOne(id);
+  async update(id: string, updateArticleDto: UpdateArticleDto, user?: any) {
+    const article = await this.findOne(id);
+
+    if (user && user.role === 'editor') {
+      if (article.authorId !== user.userId) {
+        throw new ForbiddenException('You can only update your own articles');
+      }
+    }
 
     const tagsData = updateArticleDto.tags?.map((tagName) => ({
       where: { name: tagName },

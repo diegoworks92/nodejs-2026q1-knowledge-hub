@@ -7,6 +7,8 @@ import {
 import { validate as isUuid } from 'uuid';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { ForbiddenException } from '@nestjs/common';
+import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @Injectable()
 export class CommentService {
@@ -60,6 +62,23 @@ export class CommentService {
     await this.findOne(id);
     await this.prisma.comment.delete({
       where: { id },
+    });
+  }
+
+  async update(id: string, updateCommentDto: UpdateCommentDto, user?: any) {
+    const comment = await this.findOne(id);
+
+    if (user && user.role === 'editor') {
+      if (comment.authorId !== user.userId) {
+        throw new ForbiddenException('You can only update your own comments');
+      }
+    }
+
+    return await this.prisma.comment.update({
+      where: { id },
+      data: {
+        content: updateCommentDto.content,
+      },
     });
   }
 }

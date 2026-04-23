@@ -12,44 +12,36 @@ import {
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { Roles } from '../auth/decorators';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Public } from '../auth/decorators/public.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 
-@ApiTags('category')
+@ApiTags('categories')
 @ApiBearerAuth()
-@Controller('category')
+@Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
   @Roles('admin', 'editor')
-  @ApiOperation({ summary: 'Create new category' })
-  @ApiResponse({ status: 201, description: 'Created' })
-  @ApiResponse({ status: 400, description: 'Bad request' })
   async create(@Body() createCategoryDto: CreateCategoryDto) {
     return await this.categoryService.create(createCategoryDto);
   }
 
+  @Public()
   @Get()
-  @ApiOperation({ summary: 'Get all categories' })
   async findAll() {
     return await this.categoryService.findAll();
   }
 
+  @Public()
   @Get(':id')
-  @ApiOperation({ summary: 'Get single category by id' })
   async findOne(@Param('id') id: string) {
     return await this.categoryService.findOne(id);
   }
 
   @Put(':id')
   @Roles('admin', 'editor')
-  @ApiOperation({ summary: 'Update category info' })
   async update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -60,7 +52,6 @@ export class CategoryController {
   @Delete(':id')
   @Roles('admin')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete category' })
   async remove(@Param('id') id: string) {
     return await this.categoryService.remove(id);
   }

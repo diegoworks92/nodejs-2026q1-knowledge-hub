@@ -18,10 +18,13 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { Roles } from '../auth/decorators';
+import { Put, Req } from '@nestjs/common';
+import { UpdateCommentDto } from './dto/update-comment.dto';
+import { Request } from 'express';
 
-@ApiTags('comment')
+@ApiTags('comments')
 @ApiBearerAuth()
-@Controller('comment')
+@Controller('comments')
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
@@ -51,5 +54,16 @@ export class CommentController {
   @ApiOperation({ summary: 'Delete comment' })
   async remove(@Param('id') id: string) {
     return await this.commentService.remove(id);
+  }
+
+  @Put(':id')
+  @Roles('admin', 'editor')
+  @ApiOperation({ summary: 'Update comment info' })
+  async update(
+    @Param('id') id: string,
+    @Body() updateCommentDto: UpdateCommentDto,
+    @Req() req: Request,
+  ) {
+    return await this.commentService.update(id, updateCommentDto, req.user);
   }
 }

@@ -112,14 +112,20 @@ export class AuthService {
   }
 
   private async generateTokens(payload: JwtPayload) {
-    const accessToken = await this.jwt.signAsync(payload, {
-      secret: process.env.JWT_SECRET,
-      expiresIn: (process.env.JWT_ACCESS_TTL || '15m') as any,
+    const tokenPayload = {
+      userId: payload.userId,
+      login: payload.login,
+      role: payload.role.toLowerCase(),
+    };
+
+    const accessToken = await this.jwt.signAsync(tokenPayload, {
+      secret: process.env.JWT_SECRET || 'secret',
+      expiresIn: '15m',
     });
 
-    const refreshToken = await this.jwt.signAsync(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: (process.env.JWT_REFRESH_TTL || '7d') as any,
+    const refreshToken = await this.jwt.signAsync(tokenPayload, {
+      secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
+      expiresIn: '7d',
     });
 
     return { accessToken, refreshToken };

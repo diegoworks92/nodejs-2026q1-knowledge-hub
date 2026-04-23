@@ -9,6 +9,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
 import { ArticleService } from './article.service';
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -20,10 +21,15 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { Roles } from '../auth/decorators';
+import { Request } from 'express';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
-@ApiTags('article')
+@ApiTags('articles')
 @ApiBearerAuth()
-@Controller('article')
+@Controller('articles')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
@@ -63,8 +69,9 @@ export class ArticleController {
   async update(
     @Param('id') id: string,
     @Body() updateArticleDto: UpdateArticleDto,
+    @Req() req: Request,
   ) {
-    return await this.articleService.update(id, updateArticleDto);
+    return await this.articleService.update(id, updateArticleDto, req.user);
   }
 
   @Delete(':id')

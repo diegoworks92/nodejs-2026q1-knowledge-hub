@@ -3,9 +3,16 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { ArticleModule } from '../article/article.module';
 import { CommentModule } from '../comment/comment.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [forwardRef(() => ArticleModule), forwardRef(() => CommentModule)],
+  imports: [
+    PrismaModule,
+    forwardRef(() => ArticleModule),
+    forwardRef(() => CommentModule),
+    forwardRef(() => AuthModule),
+  ],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

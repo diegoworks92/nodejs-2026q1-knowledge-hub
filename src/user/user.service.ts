@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
@@ -10,6 +9,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-user.dto';
 import { Role } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { NotFoundError } from '../errors/custom-errors';
 
 @Injectable()
 export class UserService {
@@ -31,7 +31,7 @@ export class UserService {
     }
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundError('User not found');
     }
     const userCopy = { ...user };
     delete (userCopy as any).password;
@@ -63,7 +63,7 @@ export class UserService {
     }
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundError('User not found');
     }
 
     const isMatch = await bcrypt.compare(
@@ -98,7 +98,7 @@ export class UserService {
 
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundError('User not found');
     }
 
     await this.prisma.$transaction([

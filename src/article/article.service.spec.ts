@@ -1,13 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ArticleService } from './article.service';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  BadRequestException,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ArticleStatus } from '@prisma/client';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NotFoundError } from '../errors/custom-errors';
 
 describe('ArticleService', () => {
   let service: ArticleService;
@@ -85,9 +82,7 @@ describe('ArticleService', () => {
       const validUuid = '123e4567-e89b-12d3-a456-426614174000';
       mockPrismaService.article.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne(validUuid)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.findOne(validUuid)).rejects.toThrow(NotFoundError);
     });
 
     it('should return article if found', async () => {

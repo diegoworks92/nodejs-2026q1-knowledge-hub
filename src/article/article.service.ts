@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
@@ -9,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleStatus } from '@prisma/client';
+import { NotFoundError } from '../errors/custom-errors';
 
 @Injectable()
 export class ArticleService {
@@ -36,7 +36,7 @@ export class ArticleService {
       include: { tags: true },
     });
     if (!article) {
-      throw new NotFoundException('Article not found');
+      throw new NotFoundError('Article not found');
     }
     return article;
   }

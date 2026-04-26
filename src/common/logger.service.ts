@@ -16,34 +16,54 @@ export class MyLogger extends ConsoleLogger {
   }
 
   log(message: any, context?: string) {
-    if (this.shouldLog('log')) this.writeToFile('LOG', message, context);
-    super.log(this.sanitize(message), context);
+    const sanitized = this.getSanitizedString(message);
+    if (this.shouldLog('log')) this.writeToFile('LOG', sanitized, context);
+    super.log(sanitized, context);
   }
 
   error(message: any, stack?: string, context?: string) {
+    const sanitized = this.getSanitizedString(message);
     if (this.shouldLog('error'))
-      this.writeToFile('ERROR', message, context, stack);
-    super.error(this.sanitize(message), stack, context);
+      this.writeToFile('ERROR', sanitized, context, stack);
+    super.error(sanitized, stack, context);
   }
 
   warn(message: any, context?: string) {
-    if (this.shouldLog('warn')) this.writeToFile('WARN', message, context);
-    super.warn(this.sanitize(message), context);
+    const sanitized = this.getSanitizedString(message);
+    if (this.shouldLog('warn')) this.writeToFile('WARN', sanitized, context);
+    super.warn(sanitized, context);
   }
 
   debug(message: any, context?: string) {
-    if (this.shouldLog('debug')) this.writeToFile('DEBUG', message, context);
-    super.debug(this.sanitize(message), context);
+    const sanitized = this.getSanitizedString(message);
+    if (this.shouldLog('debug')) this.writeToFile('DEBUG', sanitized, context);
+    super.debug(sanitized, context);
   }
 
-  private sanitize(message: any): string {
+  private getSanitizedString(message: any): string {
     if (typeof message !== 'object' || message === null) return String(message);
-    const sanitized = { ...message };
+    const sanitizedObj = this.deepSanitize(message);
+    return JSON.stringify(sanitizedObj);
+  }
+
+  private deepSanitize(obj: any): any {
+    if (typeof obj !== 'object' || obj === null) return obj;
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.deepSanitize(item));
+    }
+
     const sensitiveKeys = ['password', 'token', 'accessToken', 'refreshToken'];
-    sensitiveKeys.forEach((key) => {
-      if (key in sanitized) sanitized[key] = '[REDACTED]';
-    });
-    return JSON.stringify(sanitized);
+    const newObj = { ...obj };
+
+    for (const key in newObj) {
+      if (sensitiveKeys.includes(key)) {
+        newObj[key] = '[REDACTED]';
+      } else if (typeof newObj[key] === 'object') {
+        newObj[key] = this.deepSanitize(newObj[key]);
+      }
+    }
+    return newObj;
   }
 
   private shouldLog(level: LogLevel): boolean {
@@ -54,15 +74,13 @@ export class MyLogger extends ConsoleLogger {
 
   private writeToFile(
     level: string,
-    message: any,
+    message: string,
     context?: string,
     stack?: string,
   ) {
     const logPath = path.join(this.logDir, this.logFile);
     const timestamp = new Date().toISOString();
-    const formattedMsg =
-      typeof message === 'object' ? this.sanitize(message) : message;
-    const logEntry = `[${timestamp}] [${level}] [${context || 'App'}] ${formattedMsg} ${stack ? '\n' + stack : ''}\n`;
+    const logEntry = `[${timestamp}] [${level}] [${context || 'App'}] ${message} ${stack ? '\n' + stack : ''}\n`;
 
     try {
       if (

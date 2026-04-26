@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NotFoundError } from '../errors/custom-errors';
 
 vi.mock('bcryptjs', () => ({
   hash: vi.fn(),
@@ -58,7 +59,7 @@ describe('UserService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
       await expect(
         service.findOne('123e4567-e89b-12d3-a456-426614174000'),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(NotFoundError);
     });
     it('should return user without password', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue({
@@ -100,7 +101,7 @@ describe('UserService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
       await expect(
         service.updatePassword(uid, { oldPassword: 'any', newPassword: 'new' }),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(NotFoundError);
     });
 
     it('should update password successfully', async () => {
@@ -133,7 +134,7 @@ describe('UserService', () => {
     });
     it('should throw NotFound if user missing', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
-      await expect(service.remove(uid)).rejects.toThrow(NotFoundException);
+      await expect(service.remove(uid)).rejects.toThrow(NotFoundError);
     });
     it('should execute transaction on success', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue({ id: uid });

@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoryService } from './category.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NotFoundError } from '../errors/custom-errors';
 
 describe('CategoryService', () => {
   let service: CategoryService;
@@ -57,9 +58,7 @@ describe('CategoryService', () => {
     it('should throw NotFoundException if category is not found', async () => {
       const validUuid = '123e4567-e89b-12d3-a456-426614174000';
       mockPrismaService.category.findUnique.mockResolvedValue(null);
-      await expect(service.findOne(validUuid)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.findOne(validUuid)).rejects.toThrow(NotFoundError);
     });
 
     it('should return category if found', async () => {

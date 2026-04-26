@@ -176,3 +176,22 @@ http://localhost:8080
 
 Public image available at:
 https://hub.docker.com/r/diegoworks/nodejs-2026q1-knowledge-hub-app
+
+## Logging & Error Handling (Assignment 09)
+
+The application implements a production-ready logging system and a centralized error handling layer.
+
+### Features:
+
+- **Custom Logger:** Built-in `MyLogger` with support for different log levels (`log`, `debug`, `warn`, `error`, `verbose`) via the `LOG_LEVEL` environment variable.
+- **Request/Response Logging:** All incoming HTTP requests (Method, URL, Query, Body) and outgoing responses (Status Code, Time) are logged.
+- **Data Sanitization:** Sensitive information such as `password` and `tokens` are automatically replaced with `[REDACTED]` in the logs using a recursive sanitization algorithm.
+- **Log File Rotation:** Logs are written to `logs/app.log`. When the file exceeds `LOG_MAX_FILE_SIZE` (default 1MB), it is automatically rotated with a timestamp suffix.
+- **Global Exception Filter:** A centralized filter catches all unhandled exceptions, logs the full stack trace, and returns a standardized JSON response.
+- **Custom Error Classes:** Implementation of `NotFoundError`, `ValidationError`, `UnauthorizedError`, and `ForbiddenError` to provide precise HTTP status codes.
+- **Graceful Shutdown:** The application listens for `uncaughtException` and `unhandledRejection` to log fatal errors, close database connections (Prisma), and shut down the server safely.
+
+### Configuration (Environment Variables):
+
+- `LOG_LEVEL`: Defines the minimum level of logs to display (default: `log`).
+- `LOG_MAX_FILE_SIZE`: Defines the maximum size of the log file in KB before rotation (default: `1024`).

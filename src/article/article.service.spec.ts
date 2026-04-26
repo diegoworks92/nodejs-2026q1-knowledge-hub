@@ -11,7 +11,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('ArticleService', () => {
   let service: ArticleService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     article: {
@@ -37,7 +36,6 @@ describe('ArticleService', () => {
     }).compile();
 
     service = module.get<ArticleService>(ArticleService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {

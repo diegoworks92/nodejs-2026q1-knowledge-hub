@@ -6,7 +6,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('CategoryService', () => {
   let service: CategoryService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     category: {
@@ -32,7 +31,6 @@ describe('CategoryService', () => {
     }).compile();
 
     service = module.get<CategoryService>(CategoryService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {

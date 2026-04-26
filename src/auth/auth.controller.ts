@@ -6,12 +6,10 @@ import {
   HttpStatus,
   UnauthorizedException,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto, LoginDto, RefreshDto } from './dto';
 import { Public } from './decorators';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {

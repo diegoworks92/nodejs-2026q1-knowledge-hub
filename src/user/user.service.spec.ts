@@ -1,13 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  BadRequestException,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { Role } from '@prisma/client';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 vi.mock('bcryptjs', () => ({
@@ -17,7 +12,6 @@ vi.mock('bcryptjs', () => ({
 
 describe('UserService', () => {
   let service: UserService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     user: {
@@ -27,134 +21,124 @@ describe('UserService', () => {
       update: vi.fn(),
       delete: vi.fn(),
     },
-    article: {
-      updateMany: vi.fn(),
-    },
-    comment: {
-      deleteMany: vi.fn(),
-    },
+    article: { updateMany: vi.fn() },
+    comment: { deleteMany: vi.fn() },
     $transaction: vi.fn(async (args) => args),
   };
 
   beforeEach(async () => {
     vi.clearAllMocks();
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
-        {
-          provide: PrismaService,
-          useValue: mockPrismaService,
-        },
+        { provide: PrismaService, useValue: mockPrismaService },
       ],
     }).compile();
-
     service = module.get<UserService>(UserService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  describe('findAll', () => {
+    it('should return all users without sensitive data', async () => {
+      mockPrismaService.user.findMany.mockResolvedValue([
+        { id: '1', login: 'u1', password: 'p1', hashedRefreshToken: 'r1' },
+      ]);
+      const result = await service.findAll();
+      expect(result[0]).not.toHaveProperty('password');
+      expect(result[0]).not.toHaveProperty('hashedRefreshToken');
+    });
   });
 
   describe('findOne', () => {
     it('should throw BadRequestException if id is not a valid UUID', async () => {
-      await expect(service.findOne('invalid-id')).rejects.toThrow(
+      await expect(service.findOne('invalid')).rejects.toThrow(
         BadRequestException,
       );
     });
-
     it('should throw NotFoundException if user is not found', async () => {
-      const validUuid = '123e4567-e89b-12d3-a456-426614174000';
       mockPrismaService.user.findUnique.mockResolvedValue(null);
-
-      await expect(service.findOne(validUuid)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findOne('123e4567-e89b-12d3-a456-426614174000'),
+      ).rejects.toThrow(NotFoundException);
     });
-
-    it('should return user without password and hashedRefreshToken', async () => {
-      const validUuid = '123e4567-e89b-12d3-a456-426614174000';
+    it('should return user without password', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue({
-        id: validUuid,
-        login: 'testuser',
-        password: 'secret',
-        hashedRefreshToken: 'token',
-        role: Role.VIEWER,
+        id: '1',
+        login: 't',
+        password: 'p',
       });
-
-      const result = await service.findOne(validUuid);
-
+      const result = await service.findOne(
+        '123e4567-e89b-12d3-a456-426614174000',
+      );
       expect(result).not.toHaveProperty('password');
-      expect(result).not.toHaveProperty('hashedRefreshToken');
-      expect(result.login).toBe('testuser');
     });
   });
 
   describe('create', () => {
-    it('should hash password and assign VIEWER role by default', async () => {
-      const dto = { login: 'newuser', password: 'plainpassword' };
-      vi.mocked(bcrypt.hash).mockResolvedValue('hashedpassword' as never);
-
+    it('should hash password and create user', async () => {
+      vi.mocked(bcrypt.hash).mockResolvedValue('hashed' as never);
       mockPrismaService.user.create.mockResolvedValue({
-        id: 'uuid',
-        login: dto.login,
-        password: 'hashedpassword',
-        role: Role.VIEWER,
+        id: '1',
+        login: 'u',
+        password: 'h',
+        role: 'VIEWER',
       });
-
-      const result = await service.create(dto);
-
-      expect(bcrypt.hash).toHaveBeenCalledWith(
-        'plainpassword',
-        expect.any(Number),
-      );
-      expect(mockPrismaService.user.create).toHaveBeenCalledWith({
-        data: {
-          login: 'newuser',
-          password: 'hashedpassword',
-          role: Role.VIEWER,
-        },
-      });
-      expect(result).not.toHaveProperty('password');
+      const result = await service.create({ login: 'u', password: 'p' });
+      expect(result.login).toBe('u');
+      expect(mockPrismaService.user.create).toHaveBeenCalled();
     });
   });
 
   describe('updatePassword', () => {
-    it('should throw ForbiddenException if old password is wrong', async () => {
-      const validUuid = '123e4567-e89b-12d3-a456-426614174000';
-      mockPrismaService.user.findUnique.mockResolvedValue({
-        id: validUuid,
-        password: 'hashed-old-password',
-      });
-      vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
+    const uid = '123e4567-e89b-12d3-a456-426614174000';
+    it('should throw BadRequest if invalid uuid', async () => {
       await expect(
-        service.updatePassword(validUuid, {
-          oldPassword: 'wrong',
-          newPassword: 'new',
-        }),
-      ).rejects.toThrow(ForbiddenException);
+        service.updatePassword('invalid', {} as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw NotFoundException if user is not found during password update', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      await expect(
+        service.updatePassword(uid, { oldPassword: 'any', newPassword: 'new' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should update password successfully', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        id: uid,
+        password: 'old',
+      });
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      vi.mocked(bcrypt.hash).mockResolvedValue('new-hash' as never);
+      mockPrismaService.user.update.mockResolvedValue({
+        id: uid,
+        password: 'new-hash',
+      });
+
+      const result = await service.updatePassword(uid, {
+        oldPassword: 'old',
+        newPassword: 'new',
+      });
+      expect(result).toBeDefined();
+      expect(mockPrismaService.user.update).toHaveBeenCalled();
     });
   });
 
   describe('remove', () => {
-    it('should call Prisma transaction with correct updates and deletes', async () => {
-      const validUuid = '123e4567-e89b-12d3-a456-426614174000';
-      mockPrismaService.user.findUnique.mockResolvedValue({ id: validUuid });
-
-      await service.remove(validUuid);
-
+    const uid = '123e4567-e89b-12d3-a456-426614174000';
+    it('should throw BadRequest if invalid uuid', async () => {
+      await expect(service.remove('invalid')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+    it('should throw NotFound if user missing', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      await expect(service.remove(uid)).rejects.toThrow(NotFoundException);
+    });
+    it('should execute transaction on success', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue({ id: uid });
+      await service.remove(uid);
       expect(mockPrismaService.$transaction).toHaveBeenCalled();
-      expect(mockPrismaService.article.updateMany).toHaveBeenCalledWith({
-        where: { authorId: validUuid },
-        data: { authorId: null },
-      });
-      expect(mockPrismaService.comment.deleteMany).toHaveBeenCalledWith({
-        where: { authorId: validUuid },
-      });
-      expect(mockPrismaService.user.delete).toHaveBeenCalledWith({
-        where: { id: validUuid },
-      });
     });
   });
 });

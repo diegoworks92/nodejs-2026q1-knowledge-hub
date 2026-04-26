@@ -17,25 +17,26 @@ export class UserService {
 
   async findAll() {
     const users = await this.prisma.user.findMany();
-    return users.map(
-      ({ password, hashedRefreshToken, ...userWithoutPassword }) =>
-        userWithoutPassword,
-    );
+    return users.map((user) => {
+      const userCopy = { ...user };
+      delete (userCopy as any).password;
+      delete (userCopy as any).hashedRefreshToken;
+      return userCopy;
+    });
   }
 
   async findOne(id: string) {
     if (!isUuid(id)) {
       throw new BadRequestException('Invalid userId (not uuid)');
     }
-
     const user = await this.prisma.user.findUnique({ where: { id } });
-
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
-    const { password, hashedRefreshToken, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    const userCopy = { ...user };
+    delete (userCopy as any).password;
+    delete (userCopy as any).hashedRefreshToken;
+    return userCopy;
   }
 
   async create(createUserDto: CreateUserDto) {
@@ -50,17 +51,17 @@ export class UserService {
       },
     });
 
-    const { password, hashedRefreshToken, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    const userCopy = { ...user };
+    delete (userCopy as any).password;
+    delete (userCopy as any).hashedRefreshToken;
+    return userCopy;
   }
 
   async updatePassword(id: string, updatePasswordDto: UpdatePasswordDto) {
     if (!isUuid(id)) {
       throw new BadRequestException('Invalid userId (not uuid)');
     }
-
     const user = await this.prisma.user.findUnique({ where: { id } });
-
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -69,7 +70,6 @@ export class UserService {
       updatePasswordDto.oldPassword,
       user.password,
     );
-
     if (!isMatch) {
       throw new ForbiddenException('Old password is wrong');
     }
@@ -82,14 +82,13 @@ export class UserService {
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: {
-        password: hashedNewPassword,
-      },
+      data: { password: hashedNewPassword },
     });
 
-    const { password, hashedRefreshToken, ...userWithoutPassword } =
-      updatedUser;
-    return userWithoutPassword;
+    const userCopy = { ...updatedUser };
+    delete (userCopy as any).password;
+    delete (userCopy as any).hashedRefreshToken;
+    return userCopy;
   }
 
   async remove(id: string) {

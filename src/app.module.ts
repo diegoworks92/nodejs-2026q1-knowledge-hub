@@ -16,6 +16,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { LoggingMiddleware } from './common/logging.middleware';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { LoggingMiddleware } from './common/logging.middleware';
     ArticleModule,
     CommentModule,
     PrismaModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [

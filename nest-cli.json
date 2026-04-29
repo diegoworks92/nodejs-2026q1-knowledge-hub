@@ -6,6 +6,7 @@
     "deleteOutDir": true,
     "assets": ["**/*.proto", "**/*.json"],
     "watchAssets": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "plugins": ["@nestjs/swagger"]
   }
 }

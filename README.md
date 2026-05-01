@@ -160,6 +160,7 @@ AI_CACHE_TTL_SEC=300
 ### Known Limitations
 
 - **Free-tier Quotas & Regional Availability:** Depending on your specific Google account and region, the free tier for `gemini-2.0-flash` might have zero quota or strict limits. If the Google API rejects the request (429 Too Many Requests), the application handles it gracefully and returns a structured `503 Service Unavailable` response to the client.
+  _Note: If you experience quota issues with the default model, you can try switching to `gemini-1.5-flash` in your `.env` file._
 - **Latency:** Text generation tasks can take a few seconds to process depending on Google's server load and the requested output length.
 
 ## Debugging in VSCode

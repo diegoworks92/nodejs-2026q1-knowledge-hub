@@ -5,6 +5,7 @@ import {
   Body,
   UseGuards,
   Inject,
+  Get,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags, ApiProperty } from '@nestjs/swagger';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -45,7 +46,8 @@ export class AiController {
     if (cached) return cached;
 
     const prompt = PromptTemplates.summarize(article.content, dto.maxLength);
-    const summary = await this.geminiService.generateText(prompt);
+
+    const summary = await this.geminiService.generateText(prompt, 'summarize');
 
     const result = {
       articleId: article.id,
@@ -74,7 +76,11 @@ export class AiController {
       dto.targetLanguage,
       dto.sourceLanguage,
     );
-    const translatedText = await this.geminiService.generateText(prompt);
+
+    const translatedText = await this.geminiService.generateText(
+      prompt,
+      'translate',
+    );
 
     const result = {
       articleId: article.id,
@@ -93,7 +99,8 @@ export class AiController {
   ) {
     const article = await this.articleService.findOne(articleId);
     const prompt = PromptTemplates.analyze(article.content, dto.task);
-    const response = await this.geminiService.generateText(prompt);
+
+    const response = await this.geminiService.generateText(prompt, 'analyze');
 
     try {
       const cleanedResponse = response
@@ -114,7 +121,15 @@ export class AiController {
 
   @Post('generate')
   async generate(@Body() dto: GeneralPromptDto) {
-    const result = await this.geminiService.generateText(dto.prompt);
+    const result = await this.geminiService.generateText(
+      dto.prompt,
+      'generate',
+    );
     return { response: result };
+  }
+
+  @Get('usage')
+  getUsage() {
+    return this.geminiService.getUsageStats();
   }
 }

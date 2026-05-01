@@ -120,6 +120,48 @@ npm run format
 
 ---
 
+## AI Integration (Google Gemini)
+
+This project integrates Google's Gemini AI to provide intelligent features for articles, such as summarization, translation, and technical analysis.
+
+### How to obtain a Gemini API Key (Step-by-step)
+
+1. Go to [Google AI Studio](https://aistudio.google.com/).
+2. Sign in with your Google account.
+3. Click on **"Get API key"** in the left sidebar.
+4. Click the **"Create API key"** button, create it in a new or existing project, and copy the generated key.
+
+### Model Used
+
+The application uses the **`gemini-2.0-flash`** model by default, configured via environment variables.
+
+### Setup & Configuration
+
+After cloning the repository and installing dependencies, you must configure the AI environment variables. Add the following to your `.env` file and replace `your-gemini-api-key` with your actual key:
+
+\`\`\`env
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_API_BASE_URL=https://generativelanguage.googleapis.com
+GEMINI_MODEL=gemini-2.0-flash
+AI_RATE_LIMIT_RPM=20
+AI_CACHE_TTL_SEC=300
+\`\`\`
+
+### How to test the AI endpoints
+
+1. Ensure the server is running (`npm run start:dev` or `npm start`).
+2. Open the Swagger UI at `http://localhost:4000/doc`.
+3. Authenticate by executing `POST /auth/login` with valid credentials and copy the `accessToken`.
+4. Click the green **"Authorize"** padlock at the top of the Swagger page, paste your token, and click Authorize.
+5. Scroll down to the **`ai`** section.
+6. Test endpoints like `POST /ai/articles/{articleId}/summarize` (using an existing article ID) or `POST /ai/generate`.
+7. Check the usage counters at `GET /ai/usage`.
+
+### Known Limitations
+
+- **Free-tier Quotas & Regional Availability:** Depending on your specific Google account and region, the free tier for `gemini-2.0-flash` might have zero quota or strict limits. If the Google API rejects the request (429 Too Many Requests), the application handles it gracefully and returns a structured `503 Service Unavailable` response to the client.
+- **Latency:** Text generation tasks can take a few seconds to process depending on Google's server load and the requested output length.
+
 ## Debugging in VSCode
 
 Press `<kbd>F5</kbd>` to start debugging using the provided launch configurations in `.vscode/launch.json`.

@@ -1,3 +1,11 @@
 {
-  "cSpell.words": ["postgres", "postgresql"]
+  "cSpell.words": [
+    "adminer",
+    "healthcheck",
+    "isready",
+    "postgres",
+    "postgresql",
+    "qdrant",
+    "vectordb"
+  ]
 }

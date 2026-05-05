@@ -6,6 +6,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { APP_GUARD } from '@nestjs/core';
+import { RagModule } from './rag/rag.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { APP_GUARD } from '@nestjs/core';
         limit: parseInt(process.env.AI_RATE_LIMIT_RPM || '20'),
       },
     ]),
+    RagModule,
 
     CacheModule.register({
       ttl: parseInt(process.env.AI_CACHE_TTL_SEC || '300') * 1000,

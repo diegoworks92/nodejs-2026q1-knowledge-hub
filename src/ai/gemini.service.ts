@@ -83,4 +83,20 @@ export class GeminiService {
       );
     }
   }
+
+  async getEmbedding(text: string): Promise<number[]> {
+    try {
+      const embeddingModelName =
+        process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004';
+      const model = this.ai.getGenerativeModel({ model: embeddingModelName });
+      const result = await model.embedContent(text);
+
+      return result.embedding.values;
+    } catch (error: any) {
+      this.logger.error(`Gemini Embedding Error: ${error.message}`);
+      throw new ServiceUnavailableException(
+        'AI embedding service is currently unavailable',
+      );
+    }
+  }
 }

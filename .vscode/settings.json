@@ -1,11 +1,18 @@
 {
   "cSpell.words": [
     "adminer",
+    "chunker",
+    "Chunker",
+    "gemini",
     "healthcheck",
+    "Idempotencia",
     "isready",
     "postgres",
     "postgresql",
     "qdrant",
+    "reindex",
+    "Reindex",
+    "uuidv",
     "vectordb"
   ]
 }

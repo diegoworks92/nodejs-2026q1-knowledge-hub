@@ -7,7 +7,7 @@ RUN npx prisma generate
 COPY . .
 RUN npm run build
 
-FROM node:22-alpine AS production
+FROM node:24-alpine AS production
 WORKDIR /app
 
 COPY --from=build /app/package*.json ./

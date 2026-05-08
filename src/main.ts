@@ -47,7 +47,7 @@ async function bootstrap() {
   );
 
   const port = process.env.PORT || 4000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`Server ready at: http://localhost:${port}`, 'Bootstrap');
   logger.log(`Documentation in: http://localhost:${port}/doc`, 'Bootstrap');
 }

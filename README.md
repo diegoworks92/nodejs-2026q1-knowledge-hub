@@ -238,3 +238,35 @@ The application implements a production-ready logging system and a centralized e
 
 - `LOG_LEVEL`: Defines the minimum level of logs to display (default: `log`).
 - `LOG_MAX_FILE_SIZE`: Defines the maximum size of the log file in KB before rotation (default: `1024`).
+
+## RAG & Vector Database (Assignment 10)
+
+This project features a Retrieval-Augmented Generation (RAG) layer to answer questions based on the Knowledge Hub articles.
+
+### Vector Database
+
+- **Provider:** Qdrant (Running in a Docker container).
+- **External Port:** 9000 (mapped to internal 6333 to avoid Windows socket conflicts).
+- **Persistence:** Data is stored in the `qdrant_data` volume.
+
+### Gemini AI Models
+
+- **Embeddings:** `text-embedding-004` (768 dimensions).
+- **Generation:** `gemini-1.5-flash`.
+
+### Startup Flow
+
+1. **Configure .env:** Ensure `GEMINI_API_KEY` and `RAG_VECTOR_DB_URL=http://vectordb:6333` are set.
+2. **Launch Infrastructure:**
+   ```bash
+   docker compose up --build -d
+   ```
+3. **Index Data:** Use the Swagger UI to call POST /ai/rag/index. This will chunk the articles and store them in Qdrant.
+
+4. **Chat:** Use POST /ai/rag/chat to ask questions about your articles.
+
+### Known Limitations
+
+**API Availability:** If Google Gemini or Qdrant are unreachable, the API returns a 503 Service Unavailable error as required by the assignment.
+
+**Rate Limits:** The free tier of Gemini has a limit of RPM (Requests Per Minute). During heavy indexing, you might hit these limits.

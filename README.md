@@ -270,3 +270,9 @@ This project features a Retrieval-Augmented Generation (RAG) layer to answer que
 **API Availability:** If Google Gemini or Qdrant are unreachable, the API returns a 503 Service Unavailable error as required by the assignment.
 
 **Rate Limits:** The free tier of Gemini has a limit of RPM (Requests Per Minute). During heavy indexing, you might hit these limits.
+
+### Configuration
+
+- **Chunking Strategy:** The text splitting logic is fully configurable via environment variables:
+  - `RAG_CHUNK_SIZE`: Defines the character limit for each text segment (Default: 800).
+  - `RAG_CHUNK_OVERLAP`: Defines the number of characters to overlap between chunks to preserve context (Default: 200).

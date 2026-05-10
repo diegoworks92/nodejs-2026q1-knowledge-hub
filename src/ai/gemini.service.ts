@@ -104,4 +104,34 @@ export class GeminiService {
       );
     }
   }
+
+  async getBatchEmbeddings(texts: string[]): Promise<number[][]> {
+    const cleanTexts = texts.map((t) => t.trim()).filter((t) => t.length > 0);
+    if (cleanTexts.length === 0) return [];
+
+    const modelName =
+      process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004';
+
+    try {
+      const model = this.ai.getGenerativeModel({ model: modelName });
+
+      const result = await model.batchEmbedContents({
+        requests: cleanTexts.map((text) => ({
+          content: { role: 'user', parts: [{ text }] },
+          taskType: 'RETRIEVAL_DOCUMENT' as any,
+        })),
+      });
+
+      if (!result.embeddings) {
+        throw new Error('No embeddings returned');
+      }
+
+      return result.embeddings.map((e) => e.values);
+    } catch (error: any) {
+      this.logger.error(`Gemini Batch technical error: ${error.message}`);
+      throw new ServiceUnavailableException(
+        'AI embedding service is currently unavailable',
+      );
+    }
+  }
 }

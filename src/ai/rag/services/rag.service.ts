@@ -51,12 +51,16 @@ export class RagService {
       const textToChunk = `${article.title}\n\n${article.content}`;
       const chunks = this.chunker.chunkText(textToChunk);
 
+      if (chunks.length === 0) continue;
+
       const points = [];
+
+      const vectors = await this.gemini.getBatchEmbeddings(chunks);
 
       for (let i = 0; i < chunks.length; i++) {
         const chunkText = chunks[i];
 
-        const vector = await this.gemini.getEmbedding(chunkText);
+        const vector = vectors[i];
 
         const pointId = uuidv5(`${article.id}-chunk-${i}`, RAG_NAMESPACE);
 
